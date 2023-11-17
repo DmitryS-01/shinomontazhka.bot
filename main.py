@@ -30,7 +30,7 @@ async def tsitatka():
     while True:
         if LAST_ONE + timedelta(seconds=5) < datetime.utcnow():
             try:
-                await bot.send_message(chat_id=shinomontazhka, text=choice(KIZARU))
+                await bot.send_message(chat_id=shinomontazhka, text=choice(KIZARU), disable_notification=True)
                 LAST_ONE = datetime.utcnow()
             except Exception as e:
                 print(f"ошибка при отправке цитатки:\n{e}")
