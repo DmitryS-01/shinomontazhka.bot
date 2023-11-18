@@ -6,9 +6,6 @@ from random import choice
 import openai
 
 
-from config import *
-from gpt import gpt_response_creation
-
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
@@ -16,7 +13,10 @@ from aiogram.types import Message
 from aiogram.utils.markdown import hbold
 from aiogram.methods import DeleteWebhook
 
-#TODO фуннции при включении ботика и его оффе
+
+from config import *
+from gpt import gpt_response_creation
+
 
 openai.api_key = open_ai_api_key
 dp = Dispatcher()
@@ -56,6 +56,14 @@ async def tsitatka():
             await asyncio.sleep(kizaru_kd)
 
 
+async def on_startup():
+    await bot.send_message(chat_id=shinomontazhka, text="привет, бублики!", disable_notification=True)
+
+
+async def on_shutdown():
+    await bot.send_message(chat_id=shinomontazhka, text="покеда, бублики(((((((", disable_notification=True)
+
+
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     await message.answer(f"Привет, {hbold(message.from_user.full_name)}!\n\nБЛЯ УУУУУУУУУ")
@@ -81,15 +89,15 @@ async def lame_message_handler(message: types.Message) -> None:
                     # встали в очередь
                     pos, NUM = NUM, NUM + 1
                     QUEUE += (pos,)
-                    please_wait = (QUEUE.index(pos) != 0 or
-                                   LAST_USE_TIME + timedelta(seconds=open_ai_kd) > datetime.utcnow())
-                    if please_wait:
+                    if (QUEUE.index(pos) != 0 or LAST_USE_TIME + timedelta(seconds=open_ai_kd) > datetime.utcnow()):
                         await message.reply("Твой запрос в очереди на обработку!")
                     # ожидание очереди
-                    while please_wait:
+                    while (QUEUE.index(pos) != 0 or LAST_USE_TIME + timedelta(seconds=open_ai_kd) > datetime.utcnow()):
                         await asyncio.sleep(1)
-                    # получаем ответ от модели
+                        # получаем ответ от модели
+                    await message.reply("генерирую ответ . . .")
                     bot_answer = await gpt_response_creation(text.replace(bot_name, 'bot'))
+                    print(bot_answer)
                     await message.reply(bot_answer)
                 finally:
                     # двигаем очередь
@@ -117,6 +125,8 @@ async def main() -> None:
 
     bot = Bot(bot_token, parse_mode=ParseMode.HTML)
     await bot(DeleteWebhook(drop_pending_updates=True))
+    dp.startup.register(on_startup)
+    dp.shutdown.register(on_shutdown)
     asyncio.create_task(tsitatka())
     await dp.start_polling(bot)
 
