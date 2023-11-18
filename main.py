@@ -89,15 +89,18 @@ async def lame_message_handler(message: types.Message) -> None:
                     # встали в очередь
                     pos, NUM = NUM, NUM + 1
                     QUEUE += (pos,)
+                    queue = None
                     if (QUEUE.index(pos) != 0 or LAST_USE_TIME + timedelta(seconds=open_ai_kd) > datetime.utcnow()):
-                        await message.reply("Твой запрос в очереди на обработку!")
+                        queue = await message.reply("Твой запрос в очереди на обработку!")
                     # ожидание очереди
                     while (QUEUE.index(pos) != 0 or LAST_USE_TIME + timedelta(seconds=open_ai_kd) > datetime.utcnow()):
                         await asyncio.sleep(1)
                         # получаем ответ от модели
-                    await message.reply("генерирую ответ . . .")
+                    generating = await message.reply("генерирую ответ . . .")
                     bot_answer = await gpt_response_creation(text.replace(bot_name, 'bot'))
-                    print(bot_answer)
+                    if queue is not None:
+                        await queue.delete()
+                    await generating.delete()
                     await message.reply(bot_answer)
                 finally:
                     # двигаем очередь
