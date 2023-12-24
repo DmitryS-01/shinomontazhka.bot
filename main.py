@@ -80,7 +80,7 @@ async def lame_message_handler(message: types.Message) -> None:
     chat_id = message.chat.id
 
     try:
-        if chat_id == shinomontazhka:
+        if chat_id in [shinomontazhka, test]:
             if user_id == vovan and PRIVET_VOVAN_FLAG:
                 await message.reply("привет, вован")
                 PRIVET_VOVAN_FLAG = False
@@ -94,12 +94,14 @@ async def lame_message_handler(message: types.Message) -> None:
 
                 try:
                     if (QUEUE.index(pos) != 0 or LAST_USE_TIME + timedelta(seconds=open_ai_kd) > datetime.utcnow()):
-                        queue = await message.reply("Твой запрос в очереди на обработку!")
+                        queue = await message.reply("Твой запрос в очереди на обработку!",
+                                                    disable_notification=True)
                     # ожидание очереди
                     while (QUEUE.index(pos) != 0 or LAST_USE_TIME + timedelta(seconds=open_ai_kd) > datetime.utcnow()):
                         await asyncio.sleep(1)
                         # получаем ответ от модели
-                    generating = await message.reply("генерирую ответ . . .")
+                    generating = await message.reply("генерирую ответ . . .",
+                                                     disable_notification=True)
                     bot_answer = await gpt_response_creation(text.replace(bot_name, 'bot'))
                     await message.reply(bot_answer)
                 except Exception as e:
@@ -107,7 +109,7 @@ async def lame_message_handler(message: types.Message) -> None:
                         await queue.delete()
                     if generating is not None:
                         await generating.delete()
-                    await message.reply("че т не идет((((")
+                    await message.reply("чет не идет((((")
 
         elif chat_id == test:
             await message.answer("подтвердите пересылку в другой чат в консоли (надо энтер нажать)")
